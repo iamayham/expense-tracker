@@ -66,14 +66,17 @@ if ($action === 'register_begin') {
     );
     $createOptions = webauthnNormalizeOptions($createArgs);
 
-    $challenge = webauthnExtractChallengeFromPublicKeyOptions($createOptions);
+    $challengeBuffer = $webAuthn->getChallenge();
+    $challenge = is_object($challengeBuffer) && method_exists($challengeBuffer, 'getBinaryString')
+        ? $challengeBuffer->getBinaryString()
+        : (string) $challengeBuffer;
     if ($challenge === '') {
         jsonResponse(false, 'Could not start passkey registration.', [], 500);
     }
 
     $_SESSION['webauthn_register'] = [
         'user_id' => (int) $user['id'],
-        'challenge' => $challenge,
+        'challenge' => base64_encode($challenge),
         'origin' => $origin,
         'rp_id' => $rpId,
         'created_at' => time(),
@@ -105,14 +108,14 @@ if ($action === 'register_finish') {
         $credential = $webAuthn->processCreate(
             webauthnDecodeBase64Flexible($clientDataJSON),
             webauthnDecodeBase64Flexible($attestationObject),
-            (string) $state['challenge'],
+            webauthnDecodeBase64Flexible((string) ($state['challenge'] ?? '')),
             true,
             true,
             false,
             false
         );
     } catch (Throwable $exception) {
-        jsonResponse(false, 'Passkey registration verification failed.', [], 422);
+        jsonResponse(false, 'Passkey registration verification failed: ' . $exception->getMessage(), [], 422);
     }
 
     $credentialIdRaw = (string) ($credential->credentialId ?? '');
@@ -185,14 +188,17 @@ if ($action === 'login_begin') {
         'required'
     );
     $getOptions = webauthnNormalizeOptions($getArgs);
-    $challenge = webauthnExtractChallengeFromPublicKeyOptions($getOptions);
+    $challengeBuffer = $webAuthn->getChallenge();
+    $challenge = is_object($challengeBuffer) && method_exists($challengeBuffer, 'getBinaryString')
+        ? $challengeBuffer->getBinaryString()
+        : (string) $challengeBuffer;
     if ($challenge === '') {
         jsonResponse(false, 'Could not start passkey login.', [], 500);
     }
 
     $_SESSION['webauthn_login'] = [
         'user_id' => $userId,
-        'challenge' => $challenge,
+        'challenge' => base64_encode($challenge),
         'origin' => $origin,
         'rp_id' => $rpId,
         'created_at' => time(),
@@ -251,19 +257,21 @@ if ($action === 'login_finish') {
     }
 
     try {
-        $newSignCount = $webAuthn->processGet(
+        $webAuthn->processGet(
             webauthnDecodeBase64Flexible($clientDataJSON),
             webauthnDecodeBase64Flexible($authenticatorData),
             webauthnDecodeBase64Flexible($signature),
             base64_decode((string) $passkeyRow['public_key'], true) ?: '',
-            (string) $state['challenge'],
+            webauthnDecodeBase64Flexible((string) ($state['challenge'] ?? '')),
+            (int) $passkeyRow['sign_count'],
             true,
-            null,
-            (int) $passkeyRow['sign_count']
+            true
         );
     } catch (Throwable $exception) {
-        jsonResponse(false, 'Passkey verification failed.', [], 401);
+        jsonResponse(false, 'Passkey verification failed: ' . $exception->getMessage(), [], 401);
     }
+
+    $newSignCount = $webAuthn->getSignatureCounter();
 
     $update = db()->prepare('UPDATE user_passkeys SET sign_count = :sign_count, updated_at = NOW() WHERE id = :id');
     $update->execute([

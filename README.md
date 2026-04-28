@@ -77,6 +77,61 @@ You still need a reachable MySQL database and correct DB environment variables.
 - Mutating requests require a valid CSRF token
 - Output is escaped in views
 
+## Passkeys (WebAuthn / Biometrics)
+
+This project supports passkey-based login for:
+- iPhone Safari (Face ID / Touch ID)
+- Android Chrome (Fingerprint / screen lock biometrics)
+
+### 1) Install dependency
+
+```bash
+composer install
+```
+
+### 2) Database table
+
+The app auto-creates `user_passkeys` in `config/db.php`, or you can import from `database/schema.sql`.
+
+Stored fields:
+- `user_id`
+- `credential_id`
+- `public_key`
+- `sign_count`
+
+### 3) API endpoint
+
+Passkey API: `api/webauthn.php` (POST + CSRF required)
+
+Actions:
+- `register_begin`
+- `register_finish`
+- `login_begin`
+- `login_finish`
+
+### 4) Frontend flow
+
+Login page includes:
+- `Register with Face ID / Fingerprint`
+- `Login with Face ID / Fingerprint`
+
+Implemented in `assets/js/webauthn.js` using:
+- `navigator.credentials.create()` for registration
+- `navigator.credentials.get()` for authentication
+- platform authenticator and required user verification (provided by server options)
+
+### 5) Security controls
+
+- HTTPS is required (localhost allowed for local dev)
+- Challenge is generated per ceremony and stored in session
+- Challenge expires after 5 minutes
+- RP ID and origin are checked before verification
+- Sign counter is stored and updated to reduce replay risk
+
+### 6) Fallback UX
+
+If passkey is unavailable or fails, users can continue using email/password login on the same page.
+
 ## Notes
 - Default categories are shared, while custom categories belong to each user
 - The sample data includes starter expenses, income entries, and categories for the demo account

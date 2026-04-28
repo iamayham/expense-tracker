@@ -7,6 +7,7 @@ $pageSubtitle = $pageSubtitle ?? '';
 $loggedIn = isLoggedIn();
 $pageActions = $pageActions ?? '';
 $useToastFlash = $useToastFlash ?? false;
+$showInstallBanner = $showInstallBanner ?? false;
 $bodyThemeClass = $loggedIn ? 'theme-' . currentUserThemePreference() : 'theme-light';
 $bodyCurrency = $loggedIn ? currentUserCurrency() : 'USD';
 $avatarUrl = $loggedIn ? currentUserAvatarUrl() : '';
@@ -28,7 +29,7 @@ $cssVersion = (string) (filemtime(__DIR__ . '/../assets/css/style.css') ?: time(
     <link rel="icon" type="image/png" href="<?= e(url('assets/icons/icon-192.png')); ?>">
     <link rel="stylesheet" href="<?= e(url('assets/css/style.css?v=' . $cssVersion)); ?>">
 </head>
-<body class="<?= e($bodyThemeClass); ?>" data-user-currency="<?= e($bodyCurrency); ?>">
+<body class="<?= e($bodyThemeClass); ?>" data-user-currency="<?= e($bodyCurrency); ?>" data-install-banner-enabled="<?= $showInstallBanner ? '1' : '0'; ?>">
 <div class="app-shell">
     <?php if ($loggedIn): ?>
         <aside class="sidebar" id="sidebar">

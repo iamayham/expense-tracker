@@ -18,6 +18,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 require_once __DIR__ . '/../config/db.php';
 
+if (!isset($_SESSION['remember_login_checked'])) {
+    $_SESSION['remember_login_checked'] = 1;
+    tryLoginFromRememberToken();
+}
+
 function db(): PDO
 {
     global $pdo;
@@ -134,6 +139,155 @@ function routeIs(string $path): bool
 function isLoggedIn(): bool
 {
     return isset($_SESSION['user_id']);
+}
+
+function rememberCookieName(): string
+{
+    return 'expense_tracker_remember';
+}
+
+function setRememberCookie(string $value, int $expiresAt): void
+{
+    $secure = isHttpsRequest();
+    setcookie(rememberCookieName(), $value, [
+        'expires' => $expiresAt,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+function clearRememberCookie(): void
+{
+    setRememberCookie('', time() - 3600);
+}
+
+function clearRememberTokenForCurrentCookie(): void
+{
+    $cookie = (string) ($_COOKIE[rememberCookieName()] ?? '');
+    if ($cookie === '' || !str_contains($cookie, ':')) {
+        clearRememberCookie();
+        return;
+    }
+
+    [$selector] = explode(':', $cookie, 2);
+    if ($selector !== '') {
+        $statement = db()->prepare('DELETE FROM remember_tokens WHERE selector = :selector');
+        $statement->execute(['selector' => $selector]);
+    }
+
+    clearRememberCookie();
+}
+
+function hydrateUserSession(array $user): void
+{
+    $_SESSION['user_id'] = (int) $user['id'];
+    $_SESSION['user_name'] = (string) $user['name'];
+    $_SESSION['user_email'] = (string) $user['email'];
+    $_SESSION['user_avatar_url'] = (string) ($user['avatar_url'] ?? '');
+    $_SESSION['user_currency'] = (string) ($user['preferred_currency'] ?? 'USD');
+    $_SESSION['user_theme_preference'] = (string) ($user['theme_preference'] ?? 'light');
+}
+
+function createRememberToken(int $userId, int $days = 30): void
+{
+    $selector = bin2hex(random_bytes(9));
+    $validator = bin2hex(random_bytes(32));
+    $tokenHash = hash('sha256', $validator);
+    $expiresAt = time() + ($days * 86400);
+
+    $deleteExpired = db()->prepare('DELETE FROM remember_tokens WHERE user_id = :user_id OR expires_at < NOW()');
+    $deleteExpired->execute(['user_id' => $userId]);
+
+    $insert = db()->prepare(
+        'INSERT INTO remember_tokens (user_id, selector, token_hash, expires_at)
+         VALUES (:user_id, :selector, :token_hash, :expires_at)'
+    );
+    $insert->execute([
+        'user_id' => $userId,
+        'selector' => $selector,
+        'token_hash' => $tokenHash,
+        'expires_at' => date('Y-m-d H:i:s', $expiresAt),
+    ]);
+
+    setRememberCookie($selector . ':' . $validator, $expiresAt);
+}
+
+function completeUserLogin(array $user, bool $rememberMe = false): void
+{
+    session_regenerate_id(true);
+    hydrateUserSession($user);
+
+    if ($rememberMe) {
+        createRememberToken((int) $user['id']);
+        return;
+    }
+
+    clearRememberTokenForCurrentCookie();
+}
+
+function tryLoginFromRememberToken(): void
+{
+    if (isLoggedIn()) {
+        return;
+    }
+
+    $cookie = (string) ($_COOKIE[rememberCookieName()] ?? '');
+    if ($cookie === '' || !str_contains($cookie, ':')) {
+        return;
+    }
+
+    [$selector, $validator] = explode(':', $cookie, 2);
+    if ($selector === '' || $validator === '') {
+        clearRememberCookie();
+        return;
+    }
+
+    $statement = db()->prepare(
+        'SELECT rt.id, rt.user_id, rt.token_hash, rt.expires_at, u.id AS uid, u.name, u.email, u.avatar_url, u.preferred_currency, u.theme_preference
+         FROM remember_tokens rt
+         INNER JOIN users u ON u.id = rt.user_id
+         WHERE rt.selector = :selector
+         LIMIT 1'
+    );
+    $statement->execute(['selector' => $selector]);
+    $record = $statement->fetch();
+
+    if (!$record) {
+        clearRememberCookie();
+        return;
+    }
+
+    if (strtotime((string) $record['expires_at']) < time()) {
+        $delete = db()->prepare('DELETE FROM remember_tokens WHERE id = :id');
+        $delete->execute(['id' => (int) $record['id']]);
+        clearRememberCookie();
+        return;
+    }
+
+    if (!hash_equals((string) $record['token_hash'], hash('sha256', $validator))) {
+        $deleteAll = db()->prepare('DELETE FROM remember_tokens WHERE user_id = :user_id');
+        $deleteAll->execute(['user_id' => (int) $record['user_id']]);
+        clearRememberCookie();
+        return;
+    }
+
+    session_regenerate_id(true);
+    hydrateUserSession([
+        'id' => (int) $record['uid'],
+        'name' => (string) $record['name'],
+        'email' => (string) $record['email'],
+        'avatar_url' => (string) ($record['avatar_url'] ?? ''),
+        'preferred_currency' => (string) ($record['preferred_currency'] ?? 'USD'),
+        'theme_preference' => (string) ($record['theme_preference'] ?? 'light'),
+    ]);
+
+    createRememberToken((int) $record['user_id']);
+
+    $deleteOld = db()->prepare('DELETE FROM remember_tokens WHERE id = :id');
+    $deleteOld->execute(['id' => (int) $record['id']]);
 }
 
 function currentUserId(): int
@@ -369,6 +523,122 @@ function jsonResponse(bool $success, string $message, array $data = [], int $sta
         'data' => $data,
     ], JSON_THROW_ON_ERROR);
     exit;
+}
+
+function isHttpsRequest(): bool
+{
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+
+    if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
+        return true;
+    }
+
+    $https = strtolower((string) ($_SERVER['HTTPS'] ?? ''));
+    $forwardedProto = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    $forwardedSsl = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? ''));
+
+    return $https === 'on' || $https === '1' || $forwardedProto === 'https' || $forwardedSsl === 'on';
+}
+
+function webauthnRpId(): string
+{
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+
+    if (str_contains($host, ':')) {
+        $parts = explode(':', $host, 2);
+        $host = $parts[0];
+    }
+
+    return $host !== '' ? $host : 'localhost';
+}
+
+function webauthnOrigin(): string
+{
+    $scheme = isHttpsRequest() ? 'https' : 'http';
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+    return $scheme . '://' . $host;
+}
+
+function webauthnExtractChallengeFromPublicKeyOptions($options): string
+{
+    if (is_string($options)) {
+        $decoded = json_decode($options, true);
+
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return webauthnExtractChallengeFromPublicKeyOptions($decoded);
+        }
+
+        return '';
+    }
+
+    if (is_array($options)) {
+        if (isset($options['publicKey']) && (is_array($options['publicKey']) || is_object($options['publicKey']) || is_string($options['publicKey']))) {
+            return webauthnExtractChallengeFromPublicKeyOptions($options['publicKey']);
+        }
+
+        return (string) ($options['challenge'] ?? '');
+    }
+
+    if (is_object($options)) {
+        if (isset($options->publicKey)) {
+            return webauthnExtractChallengeFromPublicKeyOptions($options->publicKey);
+        }
+
+        return (string) ($options->challenge ?? '');
+    }
+
+    return '';
+}
+
+function webauthnNormalizeOptions($options): array
+{
+    if (is_string($options)) {
+        $decoded = json_decode($options, true);
+
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return webauthnNormalizeOptions($decoded);
+        }
+
+        return [];
+    }
+
+    if (is_object($options)) {
+        $options = json_decode(json_encode($options, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    if (!is_array($options)) {
+        return [];
+    }
+
+    if (isset($options['publicKey']) && is_array($options['publicKey'])) {
+        return $options['publicKey'];
+    }
+
+    return $options;
+}
+
+function webauthnDecodeBase64Flexible(string $value): string
+{
+    $normalized = trim($value);
+    if ($normalized === '') {
+        return '';
+    }
+
+    $standard = base64_decode($normalized, true);
+    if ($standard !== false) {
+        return $standard;
+    }
+
+    $base64Url = strtr($normalized, '-_', '+/');
+    $padding = strlen($base64Url) % 4;
+    if ($padding > 0) {
+        $base64Url .= str_repeat('=', 4 - $padding);
+    }
+
+    $decoded = base64_decode($base64Url, true);
+
+    return $decoded !== false ? $decoded : '';
 }
 
 function validateCategoryNameInput(string $name): array

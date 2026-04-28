@@ -4,6 +4,8 @@ USE expense_tracker;
 DROP TABLE IF EXISTS income;
 DROP TABLE IF EXISTS expenses;
 DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS user_passkeys;
+DROP TABLE IF EXISTS remember_tokens;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
@@ -67,6 +69,37 @@ CREATE TABLE income (
         FOREIGN KEY (user_id) REFERENCES users(id)
         ON DELETE CASCADE,
     KEY idx_income_user_date (user_id, income_date)
+) ENGINE=InnoDB;
+
+CREATE TABLE user_passkeys (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    credential_id VARCHAR(512) NOT NULL,
+    public_key TEXT NOT NULL,
+    sign_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    transports VARCHAR(255) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_passkeys_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    UNIQUE KEY unique_credential_id (credential_id),
+    KEY idx_user_passkeys_user (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE remember_tokens (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    selector VARCHAR(24) NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_remember_tokens_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    UNIQUE KEY unique_remember_selector (selector),
+    KEY idx_remember_user (user_id),
+    KEY idx_remember_expires (expires_at)
 ) ENGINE=InnoDB;
 
 INSERT INTO users (id, name, email, avatar_url, password_hash, preferred_currency, theme_preference, balance, notify_reminders, notify_updates) VALUES

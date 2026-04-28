@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/functions.php';
 
+clearRememberTokenForCurrentCookie();
 $_SESSION = [];
 
 if (ini_get('session.use_cookies')) {

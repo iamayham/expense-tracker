@@ -1,0 +1,9 @@
+{
+    "name": "expense-tracker/app",
+    "description": "Expense Tracker with WebAuthn passkeys",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "lbuchs/webauthn": "^2.0"
+    }
+}

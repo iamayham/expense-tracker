@@ -66,6 +66,7 @@ require_once __DIR__ . '/../includes/header.php';
 <?php if ($errors): ?>
     <div class="alert alert-error"><?= e(implode(' ', $errors)); ?></div>
 <?php endif; ?>
+<div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
 
 <div
     data-expenses-page

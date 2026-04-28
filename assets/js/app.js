@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const userAgent = window.navigator.userAgent || '';
     const platform = String(window.navigator.userAgentData?.platform || window.navigator.platform || '').toLowerCase();
     const isAndroid = /android/i.test(userAgent) || platform.includes('android');
+    const installBannerEnabled = document.body.dataset.installBannerEnabled === '1';
     const isIos = !isAndroid && (
         /iphone|ipad|ipod/i.test(userAgent) ||
         (platform.includes('mac') && window.navigator.maxTouchPoints > 1)
@@ -212,21 +213,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    window.addEventListener('beforeinstallprompt', function (event) {
-        event.preventDefault();
-        deferredInstallPrompt = event;
-        showInstallBanner();
-    });
+    if (installBannerEnabled) {
+        window.addEventListener('beforeinstallprompt', function (event) {
+            event.preventDefault();
+            deferredInstallPrompt = event;
+            showInstallBanner();
+        });
 
-    window.addEventListener('appinstalled', function () {
-        deferredInstallPrompt = null;
-        const banner = document.querySelector('[data-install-banner]');
-        if (banner) {
-            banner.remove();
-        }
-    });
+        window.addEventListener('appinstalled', function () {
+            deferredInstallPrompt = null;
+            const banner = document.querySelector('[data-install-banner]');
+            if (banner) {
+                banner.remove();
+            }
+        });
 
-    window.setTimeout(showInstallBanner, 1200);
+        window.setTimeout(showInstallBanner, 1200);
+    }
 
     const getBasePath = function () {
         const path = window.location.pathname;
@@ -736,12 +739,18 @@ document.addEventListener('DOMContentLoaded', function () {
             expenseForm.addEventListener('submit', async function (event) {
                 event.preventDefault();
                 bindLoadingSubmitButtons(expenseForm);
+                const expenseIdField = expenseForm.querySelector('[data-expense-id]');
+                const isUpdatingExpense = expenseIdField ? Number(expenseIdField.value || 0) > 0 : false;
 
                 try {
                     const payload = await submitApiForm(expensesApiUrl, expenseForm);
-                    showToast(payload.message, 'success');
+                    showToast(
+                        isUpdatingExpense
+                            ? 'Expense updated successfully.'
+                            : (payload.message || 'Expense added successfully.'),
+                        'success'
+                    );
                     expenseForm.reset();
-                    const expenseIdField = expenseForm.querySelector('[data-expense-id]');
                     if (expenseIdField) {
                         expenseIdField.value = '0';
                     }

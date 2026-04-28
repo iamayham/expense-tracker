@@ -971,6 +971,25 @@ button.button-sm {
     text-align: left;
 }
 
+.remember-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.remember-checkbox-input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    padding: 0;
+    border-radius: 4px;
+    accent-color: #22c55e;
+    flex: 0 0 auto;
+}
+
 .auth-link {
     margin: 1.15rem 0 1.2rem;
     text-align: center;

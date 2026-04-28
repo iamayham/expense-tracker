@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let deferredInstallPrompt = null;
 
     const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    const isAndroid = /android/i.test(window.navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     const isSafari = /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
 
@@ -233,6 +234,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     existingBanner.remove();
                 }
             });
+            return;
+        }
+
+        if (isAndroid) {
+            createInstallBanner('Install this app: open browser menu and tap "Install app" or "Add to Home screen".', '', function () {});
             return;
         }
 

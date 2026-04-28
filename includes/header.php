@@ -19,9 +19,12 @@ $cssVersion = (string) (filemtime(__DIR__ . '/../assets/css/style.css') ?: time(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle); ?></title>
     <meta name="theme-color" content="#22c55e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Expense Tracker">
     <link rel="manifest" href="<?= e(url('manifest.webmanifest')); ?>">
     <link rel="icon" href="<?= e(url('assets/icons/icon-192.png')); ?>" type="image/png">
-    <link rel="apple-touch-icon" href="<?= e(url('assets/icons/icon-192.png')); ?>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= e(url('assets/icons/icon-180.png')); ?>">
     <link rel="stylesheet" href="<?= e(url('assets/css/style.css?v=' . $cssVersion)); ?>">
 </head>
 <body class="<?= e($bodyThemeClass); ?>" data-user-currency="<?= e($bodyCurrency); ?>">

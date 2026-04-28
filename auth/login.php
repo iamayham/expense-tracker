@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Login';
 require_once __DIR__ . '/../includes/header.php';
 ?>
-<div class="card auth-card">
+<div class="card auth-card" data-login-page>
     <div class="auth-logo-wrap" aria-label="<?= e(appName()); ?>">
         <span class="auth-logo-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">

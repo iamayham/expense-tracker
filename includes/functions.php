@@ -641,6 +641,11 @@ function webauthnDecodeBase64Flexible(string $value): string
     return $decoded !== false ? $decoded : '';
 }
 
+function webauthnEncodeBase64Url(string $value): string
+{
+    return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+}
+
 function validateCategoryNameInput(string $name): array
 {
     $errors = [];

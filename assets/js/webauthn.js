@@ -120,6 +120,23 @@ document.addEventListener('DOMContentLoaded', function () {
         return data;
     };
 
+    const friendlyPasskeyError = function (error, context) {
+        const errorName = error && error.name ? String(error.name) : '';
+        const defaultMessage = context === 'register'
+            ? 'Could not register passkey.'
+            : 'Could not log in with passkey. You can still use password login.';
+
+        if (errorName === 'InvalidStateError') {
+            return 'This device already has a passkey for this account. Use "Login with Face ID / Fingerprint".';
+        }
+
+        if (errorName === 'NotAllowedError') {
+            return 'Face ID / fingerprint was cancelled or timed out. Please try again.';
+        }
+
+        return (error && error.message) ? error.message : defaultMessage;
+    };
+
     const mapCreateOptions = function (publicKey) {
         const mapped = Object.assign({}, publicKey);
         mapped.challenge = base64UrlToArrayBuffer(publicKey.challenge);
@@ -211,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 setMessage(finishPayload.message || 'Passkey registered successfully.', 'success');
             } catch (error) {
-                setMessage(error.message || 'Could not register passkey.', 'error');
+                setMessage(friendlyPasskeyError(error, 'register'), 'error');
             } finally {
                 setLoading(registerButton, false);
             }
@@ -259,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 setMessage(finishPayload.message || 'Passkey login successful.', 'success');
                 window.location.href = (finishPayload.data && finishPayload.data.redirect) ? finishPayload.data.redirect : '/';
             } catch (error) {
-                setMessage(error.message || 'Could not log in with passkey. You can still use password login.', 'error');
+                setMessage(friendlyPasskeyError(error, 'login'), 'error');
             } finally {
                 setLoading(loginButton, false);
             }

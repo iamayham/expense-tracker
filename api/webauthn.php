@@ -48,7 +48,10 @@ if ($action === 'register_begin') {
     $excludeRows->execute(['user_id' => (int) $user['id']]);
     $excludeCredentialIds = [];
     foreach ($excludeRows->fetchAll() as $row) {
-        $excludeCredentialIds[] = base64_decode((string) $row['credential_id'], true) ?: '';
+        $rawCredentialId = webauthnDecodeBase64Flexible((string) $row['credential_id']);
+        if ($rawCredentialId !== '') {
+            $excludeCredentialIds[] = $rawCredentialId;
+        }
     }
 
     $createArgs = $webAuthn->getCreateArgs(
@@ -112,7 +115,8 @@ if ($action === 'register_finish') {
         jsonResponse(false, 'Passkey registration verification failed.', [], 422);
     }
 
-    $credentialId = base64_encode((string) ($credential->credentialId ?? ''));
+    $credentialIdRaw = (string) ($credential->credentialId ?? '');
+    $credentialId = webauthnEncodeBase64Url($credentialIdRaw);
     $publicKey = base64_encode((string) ($credential->credentialPublicKey ?? ''));
     $signCount = (int) ($credential->signCount ?? 0);
 
@@ -160,8 +164,8 @@ if ($action === 'login_begin') {
     $credentialRows->execute(['user_id' => $userId]);
     $credentialIds = [];
     foreach ($credentialRows->fetchAll() as $row) {
-        $rawId = base64_decode((string) $row['credential_id'], true);
-        if ($rawId !== false && $rawId !== '') {
+        $rawId = webauthnDecodeBase64Flexible((string) $row['credential_id']);
+        if ($rawId !== '') {
             $credentialIds[] = $rawId;
         }
     }
@@ -226,14 +230,21 @@ if ($action === 'login_finish') {
         jsonResponse(false, 'Invalid credential id.', [], 422);
     }
 
+    $credentialIdBase64Url = webauthnEncodeBase64Url($credentialId);
+    $credentialIdBase64 = base64_encode($credentialId);
+
     $statement = db()->prepare(
         'SELECT up.id, up.user_id, up.credential_id, up.public_key, up.sign_count, u.name, u.email, u.avatar_url, u.preferred_currency, u.theme_preference
          FROM user_passkeys up
          INNER JOIN users u ON u.id = up.user_id
-         WHERE up.credential_id = :credential_id
+         WHERE up.credential_id = :credential_id_base64url
+            OR up.credential_id = :credential_id_base64
          LIMIT 1'
     );
-    $statement->execute(['credential_id' => base64_encode($credentialId)]);
+    $statement->execute([
+        'credential_id_base64url' => $credentialIdBase64Url,
+        'credential_id_base64' => $credentialIdBase64,
+    ]);
     $passkeyRow = $statement->fetch();
     if (!$passkeyRow) {
         jsonResponse(false, 'Passkey not recognized.', [], 404);

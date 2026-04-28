@@ -103,6 +103,131 @@ document.addEventListener('DOMContentLoaded', function () {
         showToast(toastTrigger.dataset.toastMessage || '', toastTrigger.dataset.toastType || 'success');
     }
 
+    let deferredInstallPrompt = null;
+    const userAgent = window.navigator.userAgent || '';
+    const platform = String(window.navigator.userAgentData?.platform || window.navigator.platform || '').toLowerCase();
+    const isAndroid = /android/i.test(userAgent) || platform.includes('android');
+    const isIos = !isAndroid && (
+        /iphone|ipad|ipod/i.test(userAgent) ||
+        (platform.includes('mac') && window.navigator.maxTouchPoints > 1)
+    );
+
+    const showInstallHelpModal = function (message) {
+        let modal = document.querySelector('[data-install-help-modal]');
+
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.className = 'install-help-modal';
+            modal.setAttribute('data-install-help-modal', 'true');
+            modal.innerHTML = ''
+                + '<div class="install-help-card" role="dialog" aria-modal="true" aria-label="Install App Help">'
+                + '  <h3>Install Expense Tracker</h3>'
+                + '  <p class="install-help-message"></p>'
+                + '  <div class="install-help-actions">'
+                + '    <button type="button" class="button" data-install-help-close>OK</button>'
+                + '  </div>'
+                + '</div>';
+            document.body.appendChild(modal);
+
+            const closeButton = modal.querySelector('[data-install-help-close]');
+            if (closeButton) {
+                closeButton.addEventListener('click', function () {
+                    modal.classList.remove('is-visible');
+                });
+            }
+
+            modal.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    modal.classList.remove('is-visible');
+                }
+            });
+        }
+
+        const messageElement = modal.querySelector('.install-help-message');
+        if (messageElement) {
+            messageElement.textContent = message;
+        }
+
+        modal.classList.add('is-visible');
+    };
+
+    const showInstallBanner = function () {
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            return;
+        }
+
+        if (document.querySelector('[data-install-banner]')) {
+            return;
+        }
+
+        const bannerMessage = isIos
+            ? 'Install Expense Tracker. On iPhone: tap Share in Safari, then tap "Add to Home Screen".'
+            : isAndroid
+                ? 'Install Expense Tracker. On Android: open browser menu (⋮), then tap "Install app" or "Add to Home screen".'
+                : 'Install Expense Tracker for faster access.';
+
+        const banner = document.createElement('div');
+        banner.className = 'install-banner';
+        banner.setAttribute('data-install-banner', 'true');
+        banner.innerHTML = ''
+            + '<p class="install-banner-text">' + bannerMessage + '</p>'
+            + '<div class="install-banner-actions">'
+            + '  <button type="button" class="button" data-install-app-button>Install App</button>'
+            + '  <button type="button" class="button secondary" data-install-dismiss-button>Later</button>'
+            + '</div>';
+
+        document.body.appendChild(banner);
+
+        const installButton = banner.querySelector('[data-install-app-button]');
+        const dismissButton = banner.querySelector('[data-install-dismiss-button]');
+
+        if (installButton) {
+            installButton.addEventListener('click', async function () {
+                if (deferredInstallPrompt) {
+                    deferredInstallPrompt.prompt();
+                    await deferredInstallPrompt.userChoice;
+                    deferredInstallPrompt = null;
+                    banner.remove();
+                    return;
+                }
+
+                if (isIos) {
+                    showInstallHelpModal('On iPhone: tap Share in Safari, then tap "Add to Home Screen".');
+                    return;
+                }
+
+                if (isAndroid) {
+                    showInstallHelpModal('On Android: open browser menu (⋮) and tap "Install app" or "Add to Home screen".');
+                    return;
+                }
+
+                showInstallHelpModal('Use your browser menu and choose "Install app" or "Add to Home Screen".');
+            });
+        }
+
+        if (dismissButton) {
+            dismissButton.addEventListener('click', function () {
+                banner.remove();
+            });
+        }
+    };
+
+    window.addEventListener('beforeinstallprompt', function (event) {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        showInstallBanner();
+    });
+
+    window.addEventListener('appinstalled', function () {
+        deferredInstallPrompt = null;
+        const banner = document.querySelector('[data-install-banner]');
+        if (banner) {
+            banner.remove();
+        }
+    });
+
+    window.setTimeout(showInstallBanner, 1200);
+
     const getBasePath = function () {
         const path = window.location.pathname;
         const markers = ['/pages/', '/auth/', '/api/'];

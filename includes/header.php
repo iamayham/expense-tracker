@@ -19,6 +19,7 @@ $cssVersion = (string) (filemtime(__DIR__ . '/../assets/css/style.css') ?: time(
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title><?= e($pageTitle); ?></title>
     <meta name="theme-color" content="#22c55e">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Expense Tracker">

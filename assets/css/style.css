@@ -569,6 +569,71 @@ button:disabled,
     background: linear-gradient(135deg, #f59e0b, #d97706);
 }
 
+.install-banner {
+    position: fixed;
+    left: 50%;
+    bottom: 1rem;
+    transform: translateX(-50%);
+    width: min(640px, calc(100% - 1.2rem));
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 16px;
+    padding: 0.9rem;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.35);
+    z-index: 90;
+}
+
+.install-banner-text {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+}
+
+.install-banner-actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+}
+
+.install-help-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 95;
+}
+
+.install-help-modal.is-visible {
+    display: flex;
+}
+
+.install-help-card {
+    width: min(440px, 100%);
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+    padding: 1rem;
+}
+
+.install-help-card h3 {
+    margin: 0 0 0.55rem;
+}
+
+.install-help-message {
+    margin: 0;
+    color: #475569;
+    line-height: 1.45;
+}
+
+.install-help-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
 .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

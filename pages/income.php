@@ -181,11 +181,11 @@ require_once __DIR__ . '/../includes/header.php';
             <?php if ($incomeEntries): ?>
                 <?php foreach ($incomeEntries as $income): ?>
                     <tr>
-                        <td><strong><?= e($income['title']); ?></strong></td>
-                        <td><?= e($income['source'] ?: 'Direct'); ?></td>
-                        <td><?= e(formatDate((string) $income['income_date'])); ?></td>
-                        <td class="amount-positive"><?= e(formatCurrency((float) $income['amount'])); ?></td>
-                        <td>
+                        <td data-label="Title"><strong><?= e($income['title']); ?></strong></td>
+                        <td data-label="Source"><?= e($income['source'] ?: 'Direct'); ?></td>
+                        <td data-label="Date"><?= e(formatDate((string) $income['income_date'])); ?></td>
+                        <td data-label="Amount" class="amount-positive"><?= e(formatCurrency((float) $income['amount'])); ?></td>
+                        <td data-label="Actions">
                             <div class="table-actions-inline">
                                 <form method="post" class="inline-form">
                                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
@@ -205,7 +205,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="5" class="muted">No income found for the selected filters.</td>
+                    <td colspan="5" class="muted" data-label="Info">No income found for the selected filters.</td>
                 </tr>
             <?php endif; ?>
             </tbody>

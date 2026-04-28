@@ -1,11 +1,12 @@
 {
+  "id": "/auth/login.php",
   "name": "Expense Tracker",
   "short_name": "Expenses",
-  "id": "/auth/login.php",
-  "description": "Track income, expenses, and balance from a simple dashboard.",
-  "start_url": "auth/login.php",
+  "description": "Track income, expenses, and balance from a clean dashboard.",
+  "start_url": "./auth/login.php",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f8fafc",
   "theme_color": "#22c55e",
   "icons": [
@@ -20,11 +21,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-180.png",
-      "sizes": "180x180",
-      "type": "image/png"
     }
   ]
 }

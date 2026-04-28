@@ -132,7 +132,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <div class="settings-avatar-preview">
                 <?php if (($profileData['avatar_url'] ?? '') !== ''): ?>
-                    <img src="<?= e($profileData['avatar_url']); ?>" alt="<?= e($profileData['name']); ?>">
+                    <img src="<?= e($profileData['avatar_url']); ?>" alt="<?= e($profileData['name']); ?>" loading="lazy" decoding="async">
                 <?php else: ?>
                     <span><?= e(strtoupper(substr($profileData['name'], 0, 1))); ?></span>
                 <?php endif; ?>

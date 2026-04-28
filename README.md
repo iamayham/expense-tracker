@@ -60,10 +60,10 @@ expense-tracker/
 3. Open `http://localhost/phpmyadmin`.
 4. Create a database named `expense_tracker` if it does not already exist.
 5. Import `database/schema.sql`.
-6. Open the app at `http://localhost/expense-tracker`.
+6. Open the app at `http://localhost/expense-tracker/`.
 
 For XAMPP, you usually do not need environment variables.
-Set your database credentials directly in `config/db.php` (`$dbHost`, `$dbPort`, `$dbName`, `$dbUser`, `$dbPass`), then start Apache + MySQL and open `http://localhost/expense-tracker/`.
+Set your database credentials directly in `config/db.php` (`$dbHost`, `$dbPort`, `$dbName`, `$dbUser`, `$dbPass`), then open `http://localhost/expense-tracker/`.
 
 Default values in `config/db.php`:
 
@@ -130,12 +130,6 @@ You still need a MySQL database available and the correct DB environment variabl
 ## Demo Account
 - Email: `demo@example.com`
 - Password: `password`
-
-## Install As App (PWA)
-- Open the live site over HTTPS (for localhost, service worker works in modern browsers).
-- In Chrome/Edge: open the browser menu and choose `Install app` / `Add to Home screen`.
-- In Safari (iPhone): tap `Share` -> `Add to Home Screen`.
-- After install, the app opens in standalone mode like a native app.
 
 ## Security Notes
 - All database queries use prepared statements through PDO

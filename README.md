@@ -2,6 +2,9 @@
 
 A web-based personal finance tracker built with PHP, MySQL, PDO, and vanilla JavaScript. It helps users manage expenses, record income, organize categories, and monitor balance changes from a simple dashboard.
 
+## Live Demo
+- [https://trackexpenses.org/](https://trackexpenses.org/)
+
 ## Features
 - User registration, login, logout, and forgot-password flow
 - Secure password hashing, session handling, and CSRF protection
@@ -59,7 +62,10 @@ expense-tracker/
 5. Import `database/schema.sql`.
 6. Open the app at `http://localhost/expense-tracker`.
 
-The default database connection values in `config/db.php` are:
+For XAMPP, you usually do not need environment variables.  
+Just edit the values in `config/db.php` (lines with `$dbHost`, `$dbPort`, `$dbName`, `$dbUser`, `$dbPass`).
+
+Default values in `config/db.php`:
 
 ```env
 DB_HOST=127.0.0.1
@@ -69,7 +75,36 @@ DB_USER=root
 DB_PASS=
 ```
 
-These values can also be overridden with environment variables.
+Typical XAMPP local settings:
+- Host: `127.0.0.1`
+- Port: `3306`
+- Database: `expense_tracker`
+- Username: `root`
+- Password: empty (default XAMPP), unless you set one
+
+If your MySQL settings are different, update `config/db.php` to match your XAMPP MySQL credentials.
+
+`config/db.php` also supports environment variables (optional):
+
+```env
+MYSQLHOST=127.0.0.1
+MYSQLPORT=3306
+MYSQLDATABASE=expense_tracker
+MYSQLUSER=root
+MYSQLPASSWORD=
+```
+
+Docker users can pass the same variables when running the container:
+
+```bash
+docker run -p 8080:80 \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PORT=3306 \
+  -e DB_NAME=expense_tracker \
+  -e DB_USER=root \
+  -e DB_PASS=your_password \
+  expense-tracker
+```
 
 ## Docker
 A basic `Dockerfile` is included.

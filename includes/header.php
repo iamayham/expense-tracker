@@ -20,8 +20,8 @@ $cssVersion = (string) (filemtime(__DIR__ . '/../assets/css/style.css') ?: time(
     <title><?= e($pageTitle); ?></title>
     <meta name="theme-color" content="#22c55e">
     <link rel="manifest" href="<?= e(url('manifest.webmanifest')); ?>">
-    <link rel="icon" href="<?= e(url('assets/icons/icon-192.svg')); ?>" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="<?= e(url('assets/icons/icon-192.svg')); ?>">
+    <link rel="icon" href="<?= e(url('assets/icons/icon-192.png')); ?>" type="image/png">
+    <link rel="apple-touch-icon" href="<?= e(url('assets/icons/icon-192.png')); ?>">
     <link rel="stylesheet" href="<?= e(url('assets/css/style.css?v=' . $cssVersion)); ?>">
 </head>
 <body class="<?= e($bodyThemeClass); ?>" data-user-currency="<?= e($bodyCurrency); ?>">

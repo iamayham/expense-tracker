@@ -1,9 +1,11 @@
-const CACHE_NAME = 'expense-tracker-v1';
+const CACHE_NAME = 'expense-tracker-v2';
 const APP_SHELL = [
   './',
   './auth/login.php',
   './assets/css/style.css',
-  './assets/js/app.js'
+  './assets/js/app.js',
+  './assets/icons/icon-192.png',
+  './assets/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -38,8 +40,9 @@ self.addEventListener('fetch', (event) => {
   const isNavigation = request.mode === 'navigate';
 
   if (isNavigation) {
+    const loginFallbackUrl = new URL('./auth/login.php', self.registration.scope).toString();
     event.respondWith(
-      fetch(request).catch(() => caches.match('./auth/login.php'))
+      fetch(request).catch(() => caches.match(loginFallbackUrl))
     );
     return;
   }
@@ -50,11 +53,15 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
 
-      return fetch(request).then((networkResponse) => {
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-        return networkResponse;
-      });
+      return fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.ok && request.url.startsWith(self.location.origin)) {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request));
     })
   );
 });

@@ -104,7 +104,9 @@ if ($action === 'register_finish') {
             webauthnDecodeBase64Flexible($attestationObject),
             (string) $state['challenge'],
             true,
-            true
+            true,
+            false,
+            false
         );
     } catch (Throwable $exception) {
         jsonResponse(false, 'Passkey registration verification failed.', [], 422);

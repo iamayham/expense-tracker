@@ -26,7 +26,7 @@ if (!class_exists(\lbuchs\WebAuthn\WebAuthn::class)) {
 $action = (string) ($_POST['action'] ?? '');
 $rpId = webauthnRpId();
 $origin = webauthnOrigin();
-$webAuthn = new \lbuchs\WebAuthn\WebAuthn(appName(), $rpId, ['none']);
+$webAuthn = new \lbuchs\WebAuthn\WebAuthn(appName(), $rpId, ['none'], true);
 
 if ($action === 'register_begin') {
     $email = strtolower(trim((string) ($_POST['email'] ?? '')));

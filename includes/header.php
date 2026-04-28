@@ -9,6 +9,7 @@ $pageActions = $pageActions ?? '';
 $useToastFlash = $useToastFlash ?? false;
 $bodyThemeClass = $loggedIn ? 'theme-' . currentUserThemePreference() : 'theme-light';
 $bodyCurrency = $loggedIn ? currentUserCurrency() : 'USD';
+$avatarUrl = $loggedIn ? currentUserAvatarUrl() : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +17,10 @@ $bodyCurrency = $loggedIn ? currentUserCurrency() : 'USD';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle); ?></title>
+    <meta name="theme-color" content="#22c55e">
+    <link rel="manifest" href="<?= e(url('manifest.webmanifest')); ?>">
+    <link rel="icon" href="<?= e(url('assets/icons/icon-192.svg')); ?>" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="<?= e(url('assets/icons/icon-192.svg')); ?>">
     <link rel="stylesheet" href="<?= e(url('assets/css/style.css')); ?>">
 </head>
 <body class="<?= e($bodyThemeClass); ?>" data-user-currency="<?= e($bodyCurrency); ?>">
@@ -123,7 +128,11 @@ $bodyCurrency = $loggedIn ? currentUserCurrency() : 'USD';
                         </svg>
                     </button>
                     <div class="profile-chip">
-                        <span class="profile-avatar"><?= e(strtoupper(substr(currentUserName(), 0, 1))); ?></span>
+                        <?php if ($avatarUrl !== ''): ?>
+                            <img class="profile-avatar" src="<?= e($avatarUrl); ?>" alt="<?= e(currentUserName()); ?>">
+                        <?php else: ?>
+                            <span class="profile-avatar"><?= e(strtoupper(substr(currentUserName(), 0, 1))); ?></span>
+                        <?php endif; ?>
                         <div>
                             <strong><?= e(currentUserName()); ?></strong>
                             <small>Personal</small>

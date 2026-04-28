@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
-        $statement = db()->prepare('SELECT id, name, email, password_hash, preferred_currency, theme_preference FROM users WHERE email = :email LIMIT 1');
+        $statement = db()->prepare('SELECT id, name, email, avatar_url, password_hash, preferred_currency, theme_preference FROM users WHERE email = :email LIMIT 1');
         $statement->execute(['email' => $email]);
         $user = $statement->fetch();
 
@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'] = (int) $user['id'];
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_avatar_url'] = (string) ($user['avatar_url'] ?? '');
             $_SESSION['user_currency'] = $user['preferred_currency'] ?? 'USD';
             $_SESSION['user_theme_preference'] = $user['theme_preference'] ?? 'light';
 

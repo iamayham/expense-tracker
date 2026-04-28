@@ -62,13 +62,13 @@ expense-tracker/
 5. Import `database/schema.sql`.
 6. Open the app at `http://localhost/expense-tracker`.
 
-For XAMPP, you usually do not need environment variables.  
-Just edit the values in `config/db.php` (lines with `$dbHost`, `$dbPort`, `$dbName`, `$dbUser`, `$dbPass`).
+For XAMPP, you usually do not need environment variables.
+Set your database credentials directly in `config/db.php` (`$dbHost`, `$dbPort`, `$dbName`, `$dbUser`, `$dbPass`), then start Apache + MySQL and open `http://localhost/expense-tracker/`.
 
 Default values in `config/db.php`:
 
 ```env
-DB_HOST=127.0.0.1
+DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=expense_tracker
 DB_USER=root
@@ -76,18 +76,22 @@ DB_PASS=
 ```
 
 Typical XAMPP local settings:
-- Host: `127.0.0.1`
-- Port: `3306`
-- Database: `expense_tracker`
-- Username: `root`
-- Password: empty (default XAMPP), unless you set one
+
+```text
+Host: localhost
+Port: 3306
+Database: expense_tracker
+Username: root
+Password: (empty by default unless you changed it)
+App URL: http://localhost/expense-tracker/
+```
 
 If your MySQL settings are different, update `config/db.php` to match your XAMPP MySQL credentials.
 
 `config/db.php` also supports environment variables (optional):
 
 ```env
-MYSQLHOST=127.0.0.1
+MYSQLHOST=localhost
 MYSQLPORT=3306
 MYSQLDATABASE=expense_tracker
 MYSQLUSER=root
@@ -126,6 +130,12 @@ You still need a MySQL database available and the correct DB environment variabl
 ## Demo Account
 - Email: `demo@example.com`
 - Password: `password`
+
+## Install As App (PWA)
+- Open the live site over HTTPS (for localhost, service worker works in modern browsers).
+- In Chrome/Edge: open the browser menu and choose `Install app` / `Add to Home screen`.
+- In Safari (iPhone): tap `Share` -> `Add to Home Screen`.
+- After install, the app opens in standalone mode like a native app.
 
 ## Security Notes
 - All database queries use prepared statements through PDO

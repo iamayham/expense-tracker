@@ -17,23 +17,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
     $action = (string) ($_POST['action'] ?? 'save');
 
-    if ($action === 'delete') {
+    if ($action === 'edit') {
+        $editingIncome = getIncomeById($userId, (int) ($_POST['income_id'] ?? 0));
+
+        if (!$editingIncome) {
+            setFlash('error', 'Income entry not found.');
+            redirect('pages/income.php');
+        }
+    } elseif ($action === 'delete') {
         $result = deleteIncomeForUser($userId, (int) ($_POST['income_id'] ?? 0));
         setFlash($result['success'] ? 'success' : 'error', $result['message'] ?? implode(' ', $result['errors'] ?? ['Unable to delete income.']));
 
         redirect('pages/income.php');
+    } elseif ($action === 'save') {
+        $incomeId = (int) ($_POST['income_id'] ?? 0);
+        $result = saveIncomeForUser($userId, $_POST, $incomeId);
+
+        if ($result['success']) {
+            setFlash('success', $result['message'] ?? 'Income saved successfully.');
+            redirect('pages/income.php');
+        }
+
+        $errors = $result['errors'] ?? [];
+        $editingIncome = array_merge(['id' => $incomeId], $result['data'] ?? []);
     }
-
-    $incomeId = (int) ($_POST['income_id'] ?? 0);
-    $result = saveIncomeForUser($userId, $_POST, $incomeId);
-
-    if ($result['success']) {
-        setFlash('success', $result['message'] ?? 'Income saved successfully.');
-        redirect('pages/income.php');
-    }
-
-    $errors = $result['errors'] ?? [];
-    $editingIncome = array_merge(['id' => $incomeId], $result['data'] ?? []);
 }
 
 $filterFrom = (string) ($_GET['from_date'] ?? '');
@@ -94,6 +101,11 @@ require_once __DIR__ . '/../includes/header.php';
             <h2><?= $editingIncome ? 'Edit Income' : 'Add Income'; ?></h2>
             <p class="muted">Capture money coming in so your balance stays accurate.</p>
         </div>
+        <?php if ($editingIncome): ?>
+            <script>
+                window.location.hash = 'income-form';
+            </script>
+        <?php endif; ?>
         <form method="post">
             <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
             <input type="hidden" name="action" value="save">
@@ -162,6 +174,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <th>Source</th>
                 <th>Date</th>
                 <th>Amount</th>
+                <th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -171,10 +184,15 @@ require_once __DIR__ . '/../includes/header.php';
                         <td><strong><?= e($income['title']); ?></strong></td>
                         <td><?= e($income['source'] ?: 'Direct'); ?></td>
                         <td><?= e(formatDate((string) $income['income_date'])); ?></td>
-                        <td class="amount-positive">
-                            <?= e(formatCurrency((float) $income['amount'])); ?>
+                        <td class="amount-positive"><?= e(formatCurrency((float) $income['amount'])); ?></td>
+                        <td>
                             <div class="table-actions-inline">
-                                <a class="button secondary" href="<?= e(url('pages/income.php?edit=' . (string) $income['id'])); ?>">Edit</a>
+                                <form method="post" class="inline-form">
+                                    <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
+                                    <input type="hidden" name="action" value="edit">
+                                    <input type="hidden" name="income_id" value="<?= e((string) $income['id']); ?>">
+                                    <button class="button secondary" type="submit" data-loading-button data-loading-text="Loading...">Edit</button>
+                                </form>
                                 <form method="post" class="inline-form">
                                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()); ?>">
                                     <input type="hidden" name="action" value="delete">
@@ -187,7 +205,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="4" class="muted">No income found for the selected filters.</td>
+                    <td colspan="5" class="muted">No income found for the selected filters.</td>
                 </tr>
             <?php endif; ?>
             </tbody>

@@ -256,6 +256,8 @@ a:hover {
     background: #dcfce7;
     color: #15803d;
     font-weight: 700;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .container {

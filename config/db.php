@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-$dbHost = getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: '127.0.0.1';
+$dbHost = getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: 'localhost';
 $dbPort = getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: '3306';
 $dbName = getenv('DB_NAME') ?: getenv('MYSQLDATABASE') ?: 'expense_tracker';
 $dbUser = getenv('DB_USER') ?: getenv('MYSQLUSER') ?: 'root';

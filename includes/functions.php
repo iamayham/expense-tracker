@@ -40,6 +40,33 @@ function currentUserEmail(): string
     return (string) ($_SESSION['user_email'] ?? '');
 }
 
+function currentUserAvatarUrl(): string
+{
+    $avatarUrl = trim((string) ($_SESSION['user_avatar_url'] ?? ''));
+
+    if ($avatarUrl !== '') {
+        return $avatarUrl;
+    }
+
+    $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+    if ($userId <= 0) {
+        return '';
+    }
+
+    try {
+        $statement = db()->prepare('SELECT avatar_url FROM users WHERE id = :id LIMIT 1');
+        $statement->execute(['id' => $userId]);
+        $avatarUrl = trim((string) $statement->fetchColumn());
+    } catch (Throwable $exception) {
+        return '';
+    }
+
+    $_SESSION['user_avatar_url'] = $avatarUrl;
+
+    return $avatarUrl;
+}
+
 function currentUserThemePreference(): string
 {
     $theme = (string) ($_SESSION['user_theme_preference'] ?? 'light');
@@ -920,10 +947,19 @@ function updateProfileForUser(int $userId, array $input, array $files = []): arr
             'image/webp' => 'webp',
         ];
         $extension = $allowedTypes[$mimeType] ?? 'jpg';
-        $uploadDir = dirname(__DIR__) . '/uploads/avatars';
+        $uploadBaseDir = dirname(__DIR__) . '/uploads';
+        $uploadDir = $uploadBaseDir . '/avatars';
+
+        if (!is_dir($uploadBaseDir) && !mkdir($uploadBaseDir, 0775, true) && !is_dir($uploadBaseDir)) {
+            return ['success' => false, 'errors' => ['Could not prepare the uploads folder. Please check folder permissions.']];
+        }
 
         if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-            return ['success' => false, 'errors' => ['Could not prepare the avatar upload folder.']];
+            return ['success' => false, 'errors' => ['Could not prepare the avatar upload folder. Please check folder permissions.']];
+        }
+
+        if (!is_writable($uploadDir)) {
+            return ['success' => false, 'errors' => ['Avatar upload folder is not writable. Please update folder permissions for uploads/avatars.']];
         }
 
         $fileName = sprintf('user-%d-%d.%s', $userId, time(), $extension);

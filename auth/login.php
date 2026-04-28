@@ -92,15 +92,5 @@ require_once __DIR__ . '/../includes/header.php';
         <p class="auth-link muted">No account yet? <a href="<?= e(url('auth/register.php')); ?>">Create one</a>.</p>
         <button class="auth-submit" type="submit">Login</button>
     </form>
-    <div class="section-gap" data-webauthn-box data-api-url="<?= e(url('api/webauthn.php')); ?>">
-        <p class="muted">Biometric login with passkeys (Face ID / Fingerprint)</p>
-        <div class="actions" style="margin-top: 0.75rem;">
-            <button class="button secondary" type="button" data-passkey-register data-loading-text="Registering passkey...">Register with Face ID / Fingerprint</button>
-            <button class="button" type="button" data-passkey-login data-loading-text="Verifying passkey...">Login with Face ID / Fingerprint</button>
-        </div>
-        <div class="alert alert-warning" style="margin-top: 0.75rem;" data-passkey-message>
-            You can always use email/password if passkey is unavailable.
-        </div>
-    </div>
 </div>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

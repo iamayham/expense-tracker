@@ -35,23 +35,6 @@ try {
             ) ENGINE=InnoDB"
         );
         $pdo->exec(
-            "CREATE TABLE IF NOT EXISTS user_passkeys (
-                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                user_id INT UNSIGNED NOT NULL,
-                credential_id VARCHAR(512) NOT NULL,
-                public_key TEXT NOT NULL,
-                sign_count BIGINT UNSIGNED NOT NULL DEFAULT 0,
-                transports VARCHAR(255) NULL,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                CONSTRAINT fk_user_passkeys_user
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                    ON DELETE CASCADE,
-                UNIQUE KEY unique_credential_id (credential_id),
-                KEY idx_user_passkeys_user (user_id)
-            ) ENGINE=InnoDB"
-        );
-        $pdo->exec(
             "CREATE TABLE IF NOT EXISTS remember_tokens (
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 user_id INT UNSIGNED NOT NULL,

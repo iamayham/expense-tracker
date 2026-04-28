@@ -23,7 +23,7 @@ $bodyCurrency = $loggedIn ? currentUserCurrency() : 'USD';
     <?php if ($loggedIn): ?>
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
-                <a class="brand" href="<?= e(url('index.php')); ?>">
+                <a class="brand" href="<?= e(url('')); ?>">
                     <span class="brand-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M6.5 4.5h8A2.5 2.5 0 0 1 17 7v10.5H6.5A2.5 2.5 0 0 1 4 15V7a2.5 2.5 0 0 1 2.5-2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
@@ -41,7 +41,7 @@ $bodyCurrency = $loggedIn ? currentUserCurrency() : 'USD';
             </div>
 
             <nav class="sidebar-nav">
-                <a class="nav-item <?= routeIs('index.php') ? 'active' : ''; ?>" href="<?= e(url('index.php')); ?>">
+                <a class="nav-item <?= routeIs('') || routeIs('index.php') ? 'active' : ''; ?>" href="<?= e(url('')); ?>">
                     <span class="nav-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M4 13.5h6.5V20H4v-6.5Zm9.5-9.5H20V20h-6.5V4ZM4 4h6.5v6.5H4V4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>

@@ -131,7 +131,7 @@ function currentUserExists(): bool
 function requireGuest(): void
 {
     if (isLoggedIn()) {
-        redirect('index.php');
+        redirect('');
     }
 }
 

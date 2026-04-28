@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_theme_preference'] = $user['theme_preference'] ?? 'light';
 
             setFlash('success', 'Welcome back, ' . $user['name'] . '.');
-            redirect('index.php');
+            redirect('');
         }
     }
 }

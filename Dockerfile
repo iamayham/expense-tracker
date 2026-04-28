@@ -10,4 +10,9 @@ RUN a2enmod rewrite
 
 RUN chown -R www-data:www-data /var/www/html
 
-EXPOSE 80
+COPY railway-start.sh /usr/local/bin/railway-start.sh
+RUN chmod +x /usr/local/bin/railway-start.sh
+
+EXPOSE 8080
+
+CMD ["railway-start.sh"]

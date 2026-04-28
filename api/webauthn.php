@@ -173,10 +173,10 @@ if ($action === 'login_begin') {
     $getArgs = $webAuthn->getGetArgs(
         $credentialIds,
         180,
-        true,
-        true,
-        true,
-        true,
+        false,
+        false,
+        false,
+        false,
         true,
         'required'
     );
